@@ -67,10 +67,10 @@ def _parse_nested_list(
 class CWEDescription:
     """Represents a CWE (Common Weakness Enumeration) classification"""
 
-    cweId: str
-    lang: str
-    description: str
-    type: str
+    cweId: str | None = None
+    lang: str | None = None
+    description: str | None = None
+    type: str | None = None
 
 
 @dataclass
@@ -86,23 +86,22 @@ class CVSSMetric:
     CVSS (Common Vulnerability Scoring System) v4.0 metrics.
     These scores quantify the severity and characteristics of a vulnerability.
     """
-
-    attackVector: str
-    attackComplexity: str
-    attackRequirements: str
-    privilegesRequired: str
-    userInteraction: str
-    vulnConfidentialityImpact: str
-    vulnIntegrityImpact: str
-    vulnAvailabilityImpact: str
-    subConfidentialityImpact: str
-    subIntegrityImpact: str
-    subAvailabilityImpact: str
     baseScore: float
     baseSeverity: str
     vectorString: str
     version: str
 
+    attackVector: str | None = None
+    attackComplexity: str | None = None
+    attackRequirements: str | None = None
+    privilegesRequired: str | None = None
+    userInteraction:str | None = None
+    vulnConfidentialityImpact: str | None = None
+    vulnIntegrityImpact: str | None = None
+    vulnAvailabilityImpact: str | None = None
+    subConfidentialityImpact: str | None = None
+    subIntegrityImpact: str | None = None
+    subAvailabilityImpact: str | None = None
 
 @dataclass
 class Metric:
