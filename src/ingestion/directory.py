@@ -22,7 +22,7 @@ def _contains_rejected(data: dict) -> bool:
     return bool(data.get("containers", {}).get("cna", {}).get("rejectedReasons"))
 
 
-def _clean_rejected_files(
+def _remove_rejected_files(
     directory: Path, pattern: str = "*.json", encoding: str = "utf-8"
 ) -> Dict[str, List[Path]]:
     """
@@ -89,8 +89,8 @@ def _clean_rejected_files(
     return results
 
 
-script_dir = Path.cwd()
-p_src = script_dir.parent / "cvelistv5" / "cves" / "2022"
+_SCRIPT_DIR = Path.cwd()
+_DATA_SRC  = script_dir.parent / "cvelistv5" / "cves" / "2022"
 
 if __name__ == "__main__":
-    _clean_rejected_files(p_src)
+    _remove_rejected_files(_DATA_SRC)
