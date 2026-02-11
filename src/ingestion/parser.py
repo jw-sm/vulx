@@ -86,6 +86,7 @@ class CVSSMetric:
     CVSS (Common Vulnerability Scoring System) v4.0 metrics.
     These scores quantify the severity and characteristics of a vulnerability.
     """
+
     baseScore: float
     baseSeverity: str
     vectorString: str
@@ -95,13 +96,14 @@ class CVSSMetric:
     attackComplexity: str | None = None
     attackRequirements: str | None = None
     privilegesRequired: str | None = None
-    userInteraction:str | None = None
+    userInteraction: str | None = None
     vulnConfidentialityImpact: str | None = None
     vulnIntegrityImpact: str | None = None
     vulnAvailabilityImpact: str | None = None
     subConfidentialityImpact: str | None = None
     subIntegrityImpact: str | None = None
     subAvailabilityImpact: str | None = None
+
 
 @dataclass
 class Metric:
