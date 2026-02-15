@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, TypeVar, Type
-from datetime import datetime
 import json
 
 T = TypeVar("T")
@@ -63,6 +62,9 @@ def _parse_nested_list(
     return result
 
 
+#======================================================
+# DATA MODELS 
+#======================================================
 @dataclass
 class CWEDescription:
     """Represents a CWE (Common Weakness Enumeration) classification"""
@@ -279,7 +281,9 @@ class CVERecord:
                 f"must be one of {valid_states}"
             )
 
-
+#======================================================
+# CVE RECORD PARSER 
+#======================================================
 def parse_cve_record(json_data: Dict[str, Any]) -> CVERecord:
     """
     Parse a CVE record from dictionary data with full error handling.
@@ -335,6 +339,9 @@ def parse_cve_record(json_data: Dict[str, Any]) -> CVERecord:
         raise CVEParseError(f"Unexpected error parsing CVE record: {e}") from e
 
 
+#======================================================
+# CNA PARSER
+#======================================================
 def parse_cna_container(data: Dict[str, Any]) -> CNAContainer:
     """Parse the CNA container with all its nested complexity"""
 
@@ -405,6 +412,10 @@ def parse_cna_container(data: Dict[str, Any]) -> CNAContainer:
     )
 
 
+
+#======================================================
+# FILE LOADER 
+#======================================================
 def load_cve_from_file(filepath: str) -> CVERecord:
     """
     Load and parse a CVE record from a JSON file.
@@ -468,7 +479,13 @@ def cve_to_dict(record: CVERecord) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    _TEST_DATA_PATH = "src/ingestion/test_data/test_cve.json"
+
+    _DIR = Path.cwd().parent / "cvelistv5" / "cves" / "2022"
+
+    try:
+        json_files = list(_DIR.rglob('*.json'))
+    except Exception as e:
+        raise FileCleanupError(f"Failed to list files: {e}") 
     try:
         # Parse the CVE record
         cve = load_cve_from_file(_TEST_DATA_PATH)
