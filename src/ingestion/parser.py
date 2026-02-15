@@ -471,7 +471,6 @@ def load_cve_from_string(json_string: str) -> CVERecord:
 def cve_to_dict(record: CVERecord) -> Dict[str, Any]:
     """
     Convert a CVE record back to dictionary format for JSON serialization.
-    Uses asdict but you could customize this for specific serialization needs.
     """
     from dataclasses import asdict
 
