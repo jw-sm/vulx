@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, TypeVar, Type
+from pathlib import Path
 import json
 
 T = TypeVar("T")
@@ -185,7 +186,6 @@ class CNAContainer:
 @dataclass
 class SSVCOption:
     """Stakeholder-Specific Vulnerability Categorization option"""
-
     # The keys are dynamic (e.g., "Exploitation", "Automatable")
     # We'll store this as a single key-value pair per option
     key: str
@@ -487,7 +487,7 @@ if __name__ == "__main__":
         raise FileCleanupError(f"Failed to list files: {e}") 
     try:
         # Parse the CVE record
-        cve = load_cve_from_file(_TEST_DATA_PATH)
+        cve = load_cve_from_file(json_files[3])
 
         # structured data with full type safety
         print(f"CVE ID: {cve.cveMetadata.cveId}")
