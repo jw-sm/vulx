@@ -488,29 +488,6 @@ if __name__ == "__main__":
     try:
         # Parse the CVE record
         cve = load_cve_from_file(json_files[3])
-
-        # structured data with full type safety
-        print(f"CVE ID: {cve.cveMetadata.cveId}")
-        print(f"State: {cve.cveMetadata.state}")
-
-        if cve.containers.cna:
-            print(f"Title: {cve.containers.cna.title}")
-
-            # Access CVSS score if available
-            if cve.containers.cna.metrics:
-                first_metric = cve.containers.cna.metrics[0]
-                if first_metric.cvssV4_0:
-                    print(f"CVSS Base Score: {first_metric.cvssV4_0.baseScore}")
-                    print(f"Severity: {first_metric.cvssV4_0.baseSeverity}")
-
-            # List affected products
-            for product in cve.containers.cna.affected:
-                print(f"Affected: {product.vendor} {product.product}")
-                for version in product.versions:
-                    print(f"  Version: {version.version} ({version.status})")
-
-        # Convert back to dict for serialization
-        as_dict = cve_to_dict(cve)
-
+        print(json.dumps(cve_to_dict(cve), indent=4))
     except CVEParseError as e:
         print(f"Failed to parse CVE: {e}")
