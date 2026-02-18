@@ -1,5 +1,6 @@
-import os
-
+"""
+Provide the configuration for the API
+"""
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import AnyUrl, computed_field
 from pathlib import Path
@@ -19,7 +20,6 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra="ignore",
     )
-
     #===============================
     # cors related settings
     #==============================
@@ -35,7 +35,6 @@ class Settings(BaseSettings):
         ] #FRONT END HOST can be added here
 
     PROJECT_NAME: str
-
 
 settings = Settings()
 

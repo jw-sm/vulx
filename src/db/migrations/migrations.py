@@ -5,6 +5,9 @@ Handles creating and dropping all tables needed for CVE storage.
 
 import psycopg
 from psycopg import sql
+from dotenv import load_dotenv
+load_dotenv()
+from config import src.ingestion.config
 
 def create_tables(conn):
     """
@@ -204,4 +207,52 @@ def create_tables(conn):
 
         conn.commit()
         print("All tables are created successfully")
+
+def drop_tables(conn):
+    """
+    Drop all CVE-related tables.
+    This deletes all the data, CVE ingestion has to be performed again
+    """
+
+    with conn.cursor() as cur:
+        print("Dropping all tables...")
+
+        cur.execute("DROP TABLE IF EXISTS sync_metadata CASCADE")
+        cur.execute("DROP TABLE IF EXISTS sources CASCADE")
+        cur.execute("DROP TABLE IF EXISTS affected_versions CASCADE")
+        cur.execute("DROP TABLE IF EXISTS affected_products CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cvss_metrics CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cwe_descriptions CASCADE")
+        cur.execute("DROP TABLE IF EXISTS problem_types CASCADE")
+        cur.execute("DROP TABLE IF EXISTS reference_tags CASCADE")
+        cur.execute("DROP TABLE IF EXISTS references CASCADE")
+        cur.execute("DROP TABLE IF EXISTS descriptions CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cna_containers CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cve_metadata CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cves CASCADE")
+        
+        conn.commit()
+        print("All tables dropped successfully!")
+
+def reset_database(conn):
+    print("Resetting database...")
+    drop_tables(conn)
+    create_tables(conn)
+    print("Database reset completed")
+
+if __name__ == "__main__":
+    import sys
+
+    DB_CONNECTION = "" #TODO
+
+    if len(sys.argv) < 2:
+        print("Usage: python migration.py [up|down|reset]")
+        print("  up    - Create all tables")
+        print("  down  - Drop all tables")
+        print("  reset - Drop and recreate all tables")
+        sys.exit(1)
+
+    command = sys.argv[1]
+
+    # TODO: finish script
 

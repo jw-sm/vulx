@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 from pathlib import Path
 
@@ -9,7 +12,7 @@ class Config:
     #================================== 
     DB_NAME = os.getenv("CVE_DB_NAME", "cvedb")
     DB_USER = os.getenv("CVE_DB_USER", "postgres")
-    DB_PASSWORD = os.getenv("CVE_DB_PASSWORD", "")
+    DB_PASSWORD = os.getenv("CVE_DB_PASSWORD")
     DB_HOST = os.getenv("CVE_DB_HOST", "localhost")
     DB_PORT = os.getenv("CVE_DB_PORT", "5432")
     
@@ -35,13 +38,12 @@ class Config:
         if not cls.DB_PASSWORD:
             errors.append("DB_PASSWORD is not set")
 
-        if not Path(cls.CVE_REPO_PATH).exists()
+        if not Path(cls.CVE_REPO_PATH).exists():
             errors.append(f"Repository path does not exist: {cls.CVE_REPO_PATH}")
 
         if errors:
-            raise ValueError("Configuration errors:\n+ "\n".join(f" - {e}" for e in errors))
+            raise ValueError("Configuration errors:\n" + "\n".join(f"  - {e}" for e in errors))
 
-config = Config()
 
 if __name__ == "__main__":
-    print(config.CVE_REPO_PATH)
+    print(Config.get_db_connection_string())
