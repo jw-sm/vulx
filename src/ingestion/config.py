@@ -10,8 +10,8 @@ class Config:
     #================================== 
     # Database settings
     #================================== 
-    DB_NAME = os.getenv("CVE_DB_NAME", "cvedb")
-    DB_USER = os.getenv("CVE_DB_USER", "postgres")
+    DB_NAME = os.getenv("CVE_DB_NAME", "vulx")
+    DB_USER = os.getenv("CVE_DB_USER")
     DB_PASSWORD = os.getenv("CVE_DB_PASSWORD")
     DB_HOST = os.getenv("CVE_DB_HOST", "localhost")
     DB_PORT = os.getenv("CVE_DB_PORT", "5432")

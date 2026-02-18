@@ -5,20 +5,23 @@ Handles creating and dropping all tables needed for CVE storage.
 
 import psycopg
 from psycopg import sql
+from src.ingestion.config import Config
+
 from dotenv import load_dotenv
+
 load_dotenv()
-from config import src.ingestion.config
+
 
 def create_tables(conn):
     """
     Create all tables neede for CVE storage.
     This builds the schema from scratch.
     """
-    
+
     with conn.cursor() as cur:
-        #==========================================
+        # ==========================================
         # cve
-        #==========================================
+        # ==========================================
         print("Creating cves table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cves (
@@ -31,9 +34,9 @@ def create_tables(conn):
             )
         """)
 
-        #==========================================
+        # ==========================================
         # cveMetaData
-        #==========================================
+        # ==========================================
         print("Creating cve_metadata table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cve_metadata(
@@ -48,9 +51,9 @@ def create_tables(conn):
             )
         """)
 
-        #==========================================
+        # ==========================================
         # containers.cna
-        #==========================================
+        # ==========================================
         print("Creating cna_containers table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cna_containers(
@@ -60,10 +63,9 @@ def create_tables(conn):
             )
         """)
 
-
-        #==========================================
+        # ==========================================
         # containers.cna.descriptions
-        #==========================================
+        # ==========================================
         print("Creating descriptions table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS descriptions(
@@ -74,9 +76,9 @@ def create_tables(conn):
             )
         """)
 
-        #==========================================
+        # ==========================================
         # containers.cna.problemTypes
-        #==========================================
+        # ==========================================
         print("Creating problem_types table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS problem_types (
@@ -97,9 +99,9 @@ def create_tables(conn):
             )
         """)
 
-        #==========================================
+        # ==========================================
         # containers.metrics
-        #==========================================
+        # ==========================================
         print("Creating cvss_metrics table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cvss_metrics (
@@ -122,10 +124,10 @@ def create_tables(conn):
                 version VARCHAR(10)
             )
         """)
-        
-        #==========================================
+
+        # ==========================================
         # containers.cna.references
-        #==========================================
+        # ==========================================
         print("Creating references table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS references(
@@ -145,9 +147,9 @@ def create_tables(conn):
             )
         """)
 
-        #==========================================
+        # ==========================================
         # containers.cna.affected
-        #==========================================
+        # ==========================================
         print("Creating affected_products table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS affected_products(
@@ -168,9 +170,9 @@ def create_tables(conn):
             )
         """)
 
-        #==========================================
+        # ==========================================
         # containers.cna
-        #==========================================
+        # ==========================================
         print("Creating sources table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS sources(
@@ -181,10 +183,9 @@ def create_tables(conn):
             )
         """)
 
-
-        #==========================================
-        # metadata table to track sync state 
-        #==========================================
+        # ==========================================
+        # metadata table to track sync state
+        # ==========================================
         print("Creating sync_metadata table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS sync_metadata(
@@ -194,19 +195,30 @@ def create_tables(conn):
             )
         """)
 
-        
         print("Creating indexes...")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_cves_cve_id ON cves(cve_id)")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_cve_metadata_state ON cve_metadata(state)")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_cvss_base_score ON cvss_metrics(base_score)")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_cvss_severity ON cvss_metrics(base_severity)")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_affected_vendor ON affected_products(vendor)")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_affected_product ON affected_products(product)")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_date_published ON cve_metadata(date_published)")
-
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cve_metadata_state ON cve_metadata(state)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cvss_base_score ON cvss_metrics(base_score)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cvss_severity ON cvss_metrics(base_severity)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_affected_vendor ON affected_products(vendor)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_affected_product ON affected_products(product)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_date_published ON cve_metadata(date_published)"
+        )
 
         conn.commit()
         print("All tables are created successfully")
+
 
 def drop_tables(conn):
     """
@@ -230,9 +242,10 @@ def drop_tables(conn):
         cur.execute("DROP TABLE IF EXISTS cna_containers CASCADE")
         cur.execute("DROP TABLE IF EXISTS cve_metadata CASCADE")
         cur.execute("DROP TABLE IF EXISTS cves CASCADE")
-        
+
         conn.commit()
         print("All tables dropped successfully!")
+
 
 def reset_database(conn):
     print("Resetting database...")
@@ -240,10 +253,11 @@ def reset_database(conn):
     create_tables(conn)
     print("Database reset completed")
 
+
 if __name__ == "__main__":
     import sys
 
-    DB_CONNECTION = "" #TODO
+    DB_CONNECTION = Config.get_db_connection_string()
 
     if len(sys.argv) < 2:
         print("Usage: python migration.py [up|down|reset]")
@@ -254,5 +268,31 @@ if __name__ == "__main__":
 
     command = sys.argv[1]
 
-    # TODO: finish script
+    try:
+        conn = psycopg.connect(DB_CONNECTION)
 
+        if command == "up":
+            create_tables(conn)
+        elif command == "down":
+            confirm = input("This will DELETE ALL DATA. Are you sure? (yes/no): ")
+            if confirm.lower() == "yes":
+                drop_tables(conn)
+            else:
+                print("Cancelled")
+        elif command == "reset":
+            confirm = input(
+                "This will DELETE ALL DATA and recreate tables. Are you sure? (yes/no): "
+            )
+            if confirm.lower() == "yes":
+                reset_database(conn)
+            else:
+                print("Cancelled")
+        else:
+            print(f"Unknown command: {command}")
+            sys.exit(1)
+
+        conn.close()
+
+    except Exception as e:
+        print(f"Migration failed: {e}")
+        sys.exit(1)
