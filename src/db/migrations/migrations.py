@@ -13,6 +13,9 @@ def create_tables(conn):
     """
     
     with conn.cursor() as cur:
+        #==========================================
+        # cve
+        #==========================================
         print("Creating cves table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cves (
@@ -25,6 +28,9 @@ def create_tables(conn):
             )
         """)
 
+        #==========================================
+        # cveMetaData
+        #==========================================
         print("Creating cve_metadata table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cve_metadata(
@@ -39,6 +45,9 @@ def create_tables(conn):
             )
         """)
 
+        #==========================================
+        # containers.cna
+        #==========================================
         print("Creating cna_containers table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cna_containers(
@@ -48,6 +57,10 @@ def create_tables(conn):
             )
         """)
 
+
+        #==========================================
+        # containers.cna.descriptions
+        #==========================================
         print("Creating descriptions table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS descriptions(
@@ -58,6 +71,58 @@ def create_tables(conn):
             )
         """)
 
+        #==========================================
+        # containers.cna.problemTypes
+        #==========================================
+        print("Creating problem_types table...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS problem_types (
+                id SERIAL PRIMARY KEY,
+                cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
+            )
+        """)
+
+        print("Creating cwe_descriptions table...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS cwe_descriptions(
+                id SERIAL PRIMARY KEY,
+                problem_type_id INTEGER REFERENCES problem_types(id) ON DELETE CASCADE,
+                cwe_id VARCHAR(20),
+                lang VARCHAR(10),
+                description TEXT,
+                type VARCHAR(50)
+            )
+        """)
+
+        #==========================================
+        # containers.metrics
+        #==========================================
+        print("Creating cvss_metrics table...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS cvss_metrics (
+                id SERIAL PRIMARY KEY,
+                cna_container_id INTEGER REFERENCES cna_containers(id) ON DELETE CASCADE,
+                attack_vector VARCHAR(20),
+                attack_complexity VARCHAR(20),
+                attack_requirements VARCHAR(20),
+                privileges_required VARCHAR(20),
+                user_interaction VARCHAR(20),
+                vuln_confidentiality_impact VARCHAR(20),
+                vuln_integrity_impact VARCHAR(20),
+                vuln_availability_impact VARCHAR(20),
+                sub_confidentiality_impact VARCHAR(20),
+                sub_integrity_impact VARCHAR(20),
+                sub_availability_impact VARCHAR(20),
+                base_score DECIMAL(3,1),
+                base_severity VARCHAR(20),
+                vector_string TEXT,
+                version VARCHAR(10)
+            )
+        """)
+        
+        #==========================================
+        # containers.cna.references
+        #==========================================
         print("Creating references table...")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS references(
@@ -77,13 +142,66 @@ def create_tables(conn):
             )
         """)
 
-        print("Creating problem_types table...")
+        #==========================================
+        # containers.cna.affected
+        #==========================================
+        print("Creating affected_products table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS problem_types (
+            CREATE TABLE IF NOT EXISTS affected_products(
                 id SERIAL PRIMARY KEY,
                 cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
+                vendor VARCHAR(255),
+                product VARCHAR(255)
             )
         """)
 
-        # TODO: cwe descriptions table
+        print("Creating affected_versions table...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS affected_versions(
+                id SERIAL PRIMARY KEY,
+                affected_product_id INTEGER REFERENCES affected_table(id) ON DELETE CASCADE,
+                version VARCHAR(100),
+                status VARCHAR(50)
+            )
+        """)
+
+        #==========================================
+        # containers.cna
+        #==========================================
+        print("Creating sources table...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS sources(
+                id SERIAL PRIMARY KEY,
+                cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
+                advisory TEXT,
+                discovery VARCHAR(50)
+            )
+        """)
+
+
+        #==========================================
+        # metadata table to track sync state 
+        #==========================================
+        print("Creating sync_metadata table...")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS sync_metadata(
+                key VARCHAR(50) PRIMARY KEY,
+                value TEXT,
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+
         
+        print("Creating indexes...")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cves_cve_id ON cves(cve_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cve_metadata_state ON cve_metadata(state)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cvss_base_score ON cvss_metrics(base_score)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cvss_severity ON cvss_metrics(base_severity)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_affected_vendor ON affected_products(vendor)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_affected_product ON affected_products(product)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_date_published ON cve_metadata(date_published)")
+
+
+        conn.commit()
+        print("All tables are created successfully")
+
