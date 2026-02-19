@@ -1,6 +1,7 @@
 """
 Provide the configuration for the API
 """
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import AnyUrl, computed_field
 from pathlib import Path
@@ -20,9 +21,9 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra="ignore",
     )
-    #===============================
+    # ===============================
     # cors related settings
-    #==============================
+    # ==============================
     _backend_cors_origin: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
@@ -32,9 +33,10 @@ class Settings(BaseSettings):
     def all_cors_origins(self) -> list[str]:
         return [
             str(origin).rstrip("/") for origin in self._backend_cors_origin
-        ] #FRONT END HOST can be added here
+        ]  # FRONT END HOST can be added here
 
     PROJECT_NAME: str
+
 
 settings = Settings()
 

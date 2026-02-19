@@ -4,9 +4,7 @@ Handles creating and dropping all tables needed for CVE storage.
 """
 
 import psycopg
-from psycopg import sql
 from src.ingestion.config import Config
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,7 +12,7 @@ load_dotenv()
 
 def create_tables(conn):
     """
-    Create all tables neede for CVE storage.
+    Create all tables needed for CVE storage.
     This builds the schema from scratch.
     """
 
@@ -39,7 +37,7 @@ def create_tables(conn):
         # ==========================================
         print("Creating cve_metadata table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS cve_metadata(
+            CREATE TABLE IF NOT EXISTS cve_metadata (
                 id SERIAL PRIMARY KEY,
                 cve_id INTEGER REFERENCES cves(id) ON DELETE CASCADE,
                 assigner_org_id VARCHAR(100),
@@ -54,9 +52,9 @@ def create_tables(conn):
         # ==========================================
         # containers.cna
         # ==========================================
-        print("Creating cna_containers table...")
+        print("Creating cna_container table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS cna_containers(
+            CREATE TABLE IF NOT EXISTS cna_container (
                 id SERIAL PRIMARY KEY,
                 cve_id INTEGER REFERENCES cves(id) ON DELETE CASCADE,
                 title TEXT
@@ -68,7 +66,7 @@ def create_tables(conn):
         # ==========================================
         print("Creating descriptions table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS descriptions(
+            CREATE TABLE IF NOT EXISTS descriptions (
                 id SERIAL PRIMARY KEY,
                 cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
                 lang VARCHAR(10),
@@ -83,13 +81,13 @@ def create_tables(conn):
         cur.execute("""
             CREATE TABLE IF NOT EXISTS problem_types (
                 id SERIAL PRIMARY KEY,
-                cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
+                cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE
             )
         """)
 
         print("Creating cwe_descriptions table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS cwe_descriptions(
+            CREATE TABLE IF NOT EXISTS cwe_descriptions (
                 id SERIAL PRIMARY KEY,
                 problem_type_id INTEGER REFERENCES problem_types(id) ON DELETE CASCADE,
                 cwe_id VARCHAR(20),
@@ -106,7 +104,7 @@ def create_tables(conn):
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cvss_metrics (
                 id SERIAL PRIMARY KEY,
-                cna_container_id INTEGER REFERENCES cna_containers(id) ON DELETE CASCADE,
+                cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
                 attack_vector VARCHAR(20),
                 attack_complexity VARCHAR(20),
                 attack_requirements VARCHAR(20),
@@ -128,22 +126,22 @@ def create_tables(conn):
         # ==========================================
         # containers.cna.references
         # ==========================================
-        print("Creating references table...")
+        print("Creating cve_references table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS references(
+            CREATE TABLE IF NOT EXISTS cve_references (
                 id SERIAL PRIMARY KEY,
-                cna_container_id  INTEGER REFERENCES cna_containers(id) ON DELETE CASCADE,
-                url TEXT ON NULL,
+                cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
+                url TEXT,
                 name TEXT
             )
         """)
 
         print("Creating reference_tags table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS reference_tags(
-                reference_id INTEGER REFERENCES references(id) ON DELETE CASCADE,
+            CREATE TABLE IF NOT EXISTS reference_tags (
+                reference_id INTEGER REFERENCES cve_references(id) ON DELETE CASCADE,
                 tag VARCHAR(100),
-                PRIMARY KEY (reference_id, tag)    
+                PRIMARY KEY (reference_id, tag)
             )
         """)
 
@@ -152,7 +150,7 @@ def create_tables(conn):
         # ==========================================
         print("Creating affected_products table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS affected_products(
+            CREATE TABLE IF NOT EXISTS affected_products (
                 id SERIAL PRIMARY KEY,
                 cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
                 vendor VARCHAR(255),
@@ -162,20 +160,20 @@ def create_tables(conn):
 
         print("Creating affected_versions table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS affected_versions(
+            CREATE TABLE IF NOT EXISTS affected_versions (
                 id SERIAL PRIMARY KEY,
-                affected_product_id INTEGER REFERENCES affected_table(id) ON DELETE CASCADE,
+                affected_product_id INTEGER REFERENCES affected_products(id) ON DELETE CASCADE,
                 version VARCHAR(100),
                 status VARCHAR(50)
             )
         """)
 
         # ==========================================
-        # containers.cna
+        # containers.cna.sources
         # ==========================================
         print("Creating sources table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS sources(
+            CREATE TABLE IF NOT EXISTS sources (
                 id SERIAL PRIMARY KEY,
                 cna_container_id INTEGER REFERENCES cna_container(id) ON DELETE CASCADE,
                 advisory TEXT,
@@ -188,7 +186,7 @@ def create_tables(conn):
         # ==========================================
         print("Creating sync_metadata table...")
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS sync_metadata(
+            CREATE TABLE IF NOT EXISTS sync_metadata (
                 key VARCHAR(50) PRIMARY KEY,
                 value TEXT,
                 updated_at TIMESTAMP DEFAULT NOW()
@@ -197,24 +195,12 @@ def create_tables(conn):
 
         print("Creating indexes...")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_cves_cve_id ON cves(cve_id)")
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_cve_metadata_state ON cve_metadata(state)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_cvss_base_score ON cvss_metrics(base_score)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_cvss_severity ON cvss_metrics(base_severity)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_affected_vendor ON affected_products(vendor)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_affected_product ON affected_products(product)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_date_published ON cve_metadata(date_published)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cve_metadata_state ON cve_metadata(state)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cvss_base_score ON cvss_metrics(base_score)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cvss_severity ON cvss_metrics(base_severity)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_affected_vendor ON affected_products(vendor)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_affected_product ON affected_products(product)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_date_published ON cve_metadata(date_published)")
 
         conn.commit()
         print("All tables are created successfully")
@@ -223,7 +209,6 @@ def create_tables(conn):
 def drop_tables(conn):
     """
     Drop all CVE-related tables.
-    This deletes all the data, CVE ingestion has to be performed again
     """
 
     with conn.cursor() as cur:
@@ -237,9 +222,9 @@ def drop_tables(conn):
         cur.execute("DROP TABLE IF EXISTS cwe_descriptions CASCADE")
         cur.execute("DROP TABLE IF EXISTS problem_types CASCADE")
         cur.execute("DROP TABLE IF EXISTS reference_tags CASCADE")
-        cur.execute("DROP TABLE IF EXISTS references CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cve_references CASCADE")
         cur.execute("DROP TABLE IF EXISTS descriptions CASCADE")
-        cur.execute("DROP TABLE IF EXISTS cna_containers CASCADE")
+        cur.execute("DROP TABLE IF EXISTS cna_container CASCADE")
         cur.execute("DROP TABLE IF EXISTS cve_metadata CASCADE")
         cur.execute("DROP TABLE IF EXISTS cves CASCADE")
 
@@ -261,9 +246,6 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         print("Usage: python migration.py [up|down|reset]")
-        print("  up    - Create all tables")
-        print("  down  - Drop all tables")
-        print("  reset - Drop and recreate all tables")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -277,22 +259,14 @@ if __name__ == "__main__":
             confirm = input("This will DELETE ALL DATA. Are you sure? (yes/no): ")
             if confirm.lower() == "yes":
                 drop_tables(conn)
-            else:
-                print("Cancelled")
         elif command == "reset":
-            confirm = input(
-                "This will DELETE ALL DATA and recreate tables. Are you sure? (yes/no): "
-            )
+            confirm = input("This will DELETE ALL DATA and recreate tables. Are you sure? (yes/no): ")
             if confirm.lower() == "yes":
                 reset_database(conn)
-            else:
-                print("Cancelled")
-        else:
-            print(f"Unknown command: {command}")
-            sys.exit(1)
 
         conn.close()
 
     except Exception as e:
         print(f"Migration failed: {e}")
         sys.exit(1)
+

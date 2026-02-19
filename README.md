@@ -1,3 +1,11 @@
 # TODO:
-[ ] - Ingestion function to save parsed cves to Postgresql
-[ ] - API-related shit that needs to be implemented
+[x] - Ingestion function to save parsed cves to database(psql)
+[ ] - CI/CD
+[ ] - Deploy to AWS
+
+## API
+[ ] - API endpoints
+[ ] - 
+
+## Tests
+[ ] - Tests using Pytest
