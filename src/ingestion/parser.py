@@ -63,9 +63,9 @@ def _parse_nested_list(
     return result
 
 
-#======================================================
-# DATA MODELS 
-#======================================================
+# ======================================================
+# DATA MODELS
+# ======================================================
 @dataclass
 class CWEDescription:
     """Represents a CWE (Common Weakness Enumeration) classification"""
@@ -186,6 +186,7 @@ class CNAContainer:
 @dataclass
 class SSVCOption:
     """Stakeholder-Specific Vulnerability Categorization option"""
+
     # The keys are dynamic (e.g., "Exploitation", "Automatable")
     # We'll store this as a single key-value pair per option
     key: str
@@ -281,9 +282,10 @@ class CVERecord:
                 f"must be one of {valid_states}"
             )
 
-#======================================================
-# CVE RECORD PARSER 
-#======================================================
+
+# ======================================================
+# CVE RECORD PARSER
+# ======================================================
 def parse_cve_record(json_data: Dict[str, Any]) -> CVERecord:
     """
     Parse a CVE record from dictionary data with full error handling.
@@ -339,9 +341,9 @@ def parse_cve_record(json_data: Dict[str, Any]) -> CVERecord:
         raise CVEParseError(f"Unexpected error parsing CVE record: {e}") from e
 
 
-#======================================================
+# ======================================================
 # CNA PARSER
-#======================================================
+# ======================================================
 def parse_cna_container(data: Dict[str, Any]) -> CNAContainer:
     """Parse the CNA container with all its nested complexity"""
 
@@ -412,10 +414,9 @@ def parse_cna_container(data: Dict[str, Any]) -> CNAContainer:
     )
 
 
-
-#======================================================
-# FILE LOADER 
-#======================================================
+# ======================================================
+# FILE LOADER
+# ======================================================
 def load_cve_from_file(filepath: str) -> CVERecord:
     """
     Load and parse a CVE record from a JSON file.
@@ -478,13 +479,12 @@ def cve_to_dict(record: CVERecord) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-
     _DIR = Path.cwd().parent / "cvelistv5" / "cves" / "2022"
 
     try:
-        json_files = list(_DIR.rglob('*.json'))
+        json_files = list(_DIR.rglob("*.json"))
     except Exception as e:
-        raise FileCleanupError(f"Failed to list files: {e}") 
+        raise FileCleanupError(f"Failed to list files: {e}")
     try:
         # Parse the CVE record
         cve = load_cve_from_file(json_files[3])
