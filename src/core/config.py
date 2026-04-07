@@ -15,6 +15,8 @@ def _parse_multiformat_cors(v: Any) -> list[str] | str:
         return [i.strip() for i in v.split(",")]
 
 
+#TODO: These are still bare minimum setting
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",

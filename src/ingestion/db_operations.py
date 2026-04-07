@@ -5,7 +5,7 @@ Handles inserting, updating, and querying CVE data in Postgresql.
 
 import psycopg
 from datetime import datetime
-from parser import CVERecord
+from .parser import CVERecord
 
 
 def upsert_cve(conn, cve: CVERecord):

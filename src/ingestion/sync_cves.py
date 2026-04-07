@@ -5,7 +5,7 @@ Pulls updates from a Git repository of CVE JSON files and syncs them to PostgreS
 from dotenv import load_dotenv
 load_dotenv()
 
-from config import Config
+from .config import Config
 
 import subprocess
 import psycopg
@@ -13,8 +13,8 @@ from pathlib import Path
 from datetime import datetime
 import sys
 
-from parser import load_cve_from_file, CVEParseError
-from db_operations import upsert_cve, get_last_sync_time, update_last_sync_time, get_cve_count
+from .parser import load_cve_from_file, CVEParseError
+from .db_operations import upsert_cve, get_last_sync_time, update_last_sync_time, get_cve_count
 
 
 def run_git_command(repo_path, command):
@@ -236,7 +236,7 @@ def sync_cves(repo_path, db_connection_string, force_full_sync=False):
 
 if __name__ == "__main__":
     import os
-    
+
     REPO_PATH = Config.CVE_REPO_PATH
     
     # Check for command line arguments
